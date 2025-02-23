@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* === Custom Global Styles === */
+body {
+  @apply bg-gradient-to-r from-blue-500 to-purple-600 text-white;
+}
+
+.container {
+  @apply max-w-7xl mx-auto px-6;
+}
+
+/* Navbar */
+.navbar {
+  @apply bg-white shadow-lg text-blue-600;
+}
+
+.navbar ul li a {
+  @apply hover:text-purple-600 transition-colors;
+}
+
+/* Button Style */
+.btn-primary {
+  @apply bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md hover:bg-blue-700 transition;
+}
+
+/* Card Style */
+.card {
+  @apply bg-white text-gray-800 p-6 rounded-lg shadow-md;
+}
+
+.card h3 {
+  @apply text-xl font-bold text-blue-600;
+}
+
