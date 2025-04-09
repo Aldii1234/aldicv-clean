@@ -1,14 +1,34 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/app/lib/mongodb";
+// app/api/rating/route.js
+import { NextResponse } from 'next/server';
+import { collection, addDoc } from 'firebase/firestore';
+import { db } from '../../../lib/firebase'; // gunakan relative path, bukan @
 
 export async function POST(req) {
-  const body = await req.json();
-  const { db } = await connectToDatabase();
+  try {
+    const { rating } = await req.json();
+    const parsedRating = parseInt(rating);
 
-  await db.collection("ratings").insertOne({
-    rating: body.rating,
-    waktu: new Date(),
-  });
+    if (isNaN(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+      return NextResponse.json(
+        { success: false, message: 'Rating tidak valid (1-5)' },
+        { status: 400 }
+      );
+    }
 
-  return NextResponse.json({ message: "Rating berhasil disimpan!" });
+    await addDoc(collection(db, 'ratings'), {
+      rating: parsedRating,
+      timestamp: new Date()
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Rating berhasil disimpan'
+    });
+  } catch (error) {
+    console.error('Gagal menyimpan rating:', error);
+    return NextResponse.json(
+      { success: false, message: 'Gagal menyimpan rating' },
+      { status: 500 }
+    );
+  }
 }

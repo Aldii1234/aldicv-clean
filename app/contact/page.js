@@ -12,37 +12,41 @@ export default function ContactPage() {
   const [hoverRating, setHoverRating] = useState(0);
   const [ratings, setRatings] = useState([]);
 
-  // Load rating dari localStorage
+  // Ambil rating dari localStorage
   useEffect(() => {
     const storedRatings = JSON.parse(localStorage.getItem("ratings") || "[]");
     setRatings(storedRatings);
   }, []);
 
-  // Simpan rating ke localStorage
+  // Simpan rating baru ke localStorage
   useEffect(() => {
-    localStorage.setItem("ratings", JSON.stringify(ratings));
-  }, [ratings]);
+    if (userRating > 0) {
+      const updated = [...ratings, userRating];
+      setRatings(updated);
+      localStorage.setItem("ratings", JSON.stringify(updated));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRating]);
 
   const averageRating = ratings.length
     ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1)
     : "0.0";
 
   const handleRating = async (rating) => {
+    if (userRating > 0) return; // Mencegah user vote dua kali
+
     setUserRating(rating);
-    setRatings([...ratings, rating]);
 
     try {
-      const res = await fetch("/api/ratings", {
+      const res = await fetch("/api/rating", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ rating }),
       });
 
-      if (res.ok) {
-        console.log("Rating berhasil disimpan");
-      }
+      if (!res.ok) throw new Error("Gagal simpan rating");
     } catch (err) {
-      console.error("Gagal simpan rating:", err);
+      console.error("Error saat simpan rating:", err);
     }
   };
 
@@ -53,7 +57,7 @@ export default function ContactPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const res = await fetch("/api/comments", {
+    const res = await fetch("/api/submit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -62,6 +66,8 @@ export default function ContactPage() {
     if (res.ok) {
       setForm({ nama: "", email: "", pesan: "" });
       setSuccess(true);
+    } else {
+      setSuccess(false);
     }
   };
 
@@ -88,7 +94,7 @@ export default function ContactPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
         >
-          {/* Info Kontak */}
+          {/* Informasi Kontak */}
           <div className="space-y-6 text-gray-800 dark:text-gray-300">
             <div className="flex items-start gap-4">
               <Mail className="w-6 h-6 text-blue-600" />
@@ -112,7 +118,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Rating Section */}
+            {/* Rating */}
             <div className="mt-6">
               <h2 className="font-semibold text-lg mb-2">Beri Rating Website Ini:</h2>
               <div className="flex items-center mb-2">
@@ -130,7 +136,7 @@ export default function ContactPage() {
                 ))}
               </div>
               <p className="text-sm">
-                Rating {averageRating} (from {ratings.length} voters)
+                Rating {averageRating} (dari {ratings.length} penilai)
               </p>
               {userRating > 0 && (
                 <p className="text-green-500 text-sm mt-1">
@@ -140,8 +146,11 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Form Kontak */}
-          <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-4">
+          {/* Formulir Kontak */}
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-4"
+          >
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nama</label>
               <input
