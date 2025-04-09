@@ -1,7 +1,8 @@
 // app/api/submit/route.js
 import { NextResponse } from 'next/server';
 import { collection, addDoc, getFirestore } from 'firebase/firestore';
-import { app } from '@/firebase'; // Pastikan path sesuai dengan lokasi file firebase.js
+import { app } from import { db } from "../../lib/firebase";
+// Pastikan path sesuai dengan lokasi file firebase.js
 
 const db = getFirestore(app);
 
