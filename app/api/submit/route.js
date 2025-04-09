@@ -1,11 +1,7 @@
 // app/api/submit/route.js
 import { NextResponse } from 'next/server';
-import { collection, addDoc, getFirestore } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
-
-// Pastikan path sesuai dengan lokasi file firebase.js
-
-const db = getFirestore(app);
 
 export async function POST(req) {
   try {
@@ -13,9 +9,18 @@ export async function POST(req) {
 
     await addDoc(collection(db, 'contacts'), data);
 
-    return NextResponse.json({ success: true, message: 'Pesan berhasil disimpan!' });
+    return NextResponse.json({
+      success: true,
+      message: 'Pesan berhasil disimpan!',
+    });
   } catch (error) {
     console.error('Gagal menyimpan pesan:', error);
-    return NextResponse.json({ success: false, message: 'Terjadi kesalahan saat menyimpan pesan.' }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Terjadi kesalahan saat menyimpan pesan.',
+      },
+      { status: 500 }
+    );
   }
 }
