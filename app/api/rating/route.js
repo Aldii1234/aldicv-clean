@@ -1,26 +1,21 @@
-// app/api/rating/route.js
-
 import { NextResponse } from "next/server";
-import clientPromise from "../../../lib/mongodb";
-import { insertRating } from "../../../models/Rating";
+import clientPromise from "../../../../lib/mongodb"; // <= RELATIF
+import { insertRating } from "../../../../models/Rating"; // <= RELATIF
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { rating } = body;
+    const { nama, komentar, rating } = body;
 
-    if (!rating || rating < 1 || rating > 5) {
-      return NextResponse.json({ message: "Rating tidak valid" }, { status: 400 });
+    if (!nama || !komentar || !rating) {
+      return NextResponse.json({ message: "Data tidak lengkap!" }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db(process.env.MONGODB_DB);
+    await insertRating({ nama, komentar, rating });
 
-    await insertRating(db, rating);
-
-    return NextResponse.json({ message: "Rating berhasil disimpan" }, { status: 200 });
+    return NextResponse.json({ message: "Rating berhasil dikirim" }, { status: 200 });
   } catch (error) {
     console.error("Gagal simpan rating:", error);
-    return NextResponse.json({ message: "Gagal menyimpan rating" }, { status: 500 });
+    return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
   }
 }
