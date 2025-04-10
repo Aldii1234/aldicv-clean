@@ -1,42 +1,23 @@
-import { NextResponse } from 'next/server';
-import { collection, addDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+// app/api/submit/route.js
+
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
   try {
-    const data = await req.json();
-    await addDoc(collection(db, 'contacts'), data);
+    const body = await req.json();
+    const { nama, email, pesan } = body;
 
-    return NextResponse.json({
-      success: true,
-      message: 'Pesan berhasil disimpan!',
-    });
+    if (!nama || !email || !pesan) {
+      return NextResponse.json({ message: "Semua kolom wajib diisi!" }, { status: 400 });
+    }
+
+    console.log("Pesan diterima:", body);
+
+    // TODO: Simpan ke database, kirim email, dsb
+
+    return NextResponse.json({ message: "Pesan berhasil dikirim" }, { status: 200 });
   } catch (error) {
-    console.error('Gagal menyimpan pesan:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        message: 'Terjadi kesalahan saat menyimpan pesan.',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-export async function GET() {
-  try {
-    const contactsRef = collection(db, 'contacts');
-    const q = query(contactsRef, orderBy('timestamp', 'desc'), limit(5)); // ambil 5 terakhir
-    const snapshot = await getDocs(q);
-
-    const data = snapshot.docs.map(doc => doc.data());
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error("Gagal mengambil komentar:", error);
-    return NextResponse.json(
-      { success: false, message: 'Gagal mengambil komentar' },
-      { status: 500 }
-    );
+    console.error("Gagal kirim pesan:", error);
+    return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
   }
 }

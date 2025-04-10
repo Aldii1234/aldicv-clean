@@ -1,3 +1,5 @@
+// app/contact/page.js
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,18 +9,17 @@ import { Mail, Phone, MapPin, Star } from "lucide-react";
 export default function ContactPage() {
   const [form, setForm] = useState({ nama: "", email: "", pesan: "" });
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
 
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [ratings, setRatings] = useState([]);
 
-  // Ambil rating dari localStorage
   useEffect(() => {
     const storedRatings = JSON.parse(localStorage.getItem("ratings") || "[]");
     setRatings(storedRatings);
   }, []);
 
-  // Simpan rating baru ke localStorage
   useEffect(() => {
     if (userRating > 0) {
       const updated = [...ratings, userRating];
@@ -33,7 +34,7 @@ export default function ContactPage() {
     : "0.0";
 
   const handleRating = async (rating) => {
-    if (userRating > 0) return; // Mencegah user vote dua kali
+    if (userRating > 0) return;
 
     setUserRating(rating);
 
@@ -56,21 +57,35 @@ export default function ContactPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    const res = await fetch("/api/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-
-    if (res.ok) {
-      setForm({ nama: "", email: "", pesan: "" });
-      setSuccess(true);
-    } else {
+  
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form), // <-- perbaikan utama di sini
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Pesan berhasil dikirim");
+        setForm({ nama: "", email: "", pesan: "" }); // reset form
+        setSuccess(true);
+        setError(false);
+      } else {
+        alert("Gagal mengirim pesan: " + data.message);
+        setError(true);
+        setSuccess(false);
+      }
+    } catch (err) {
+      console.error("Terjadi kesalahan saat mengirim:", err);
+      setError(true);
       setSuccess(false);
     }
   };
-
+  
   return (
     <motion.section
       className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center px-4"
@@ -94,7 +109,7 @@ export default function ContactPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.8 }}
         >
-          {/* Informasi Kontak */}
+          {/* Kontak & Rating */}
           <div className="space-y-6 text-gray-800 dark:text-gray-300">
             <div className="flex items-start gap-4">
               <Mail className="w-6 h-6 text-blue-600" />
@@ -118,7 +133,6 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Rating */}
             <div className="mt-6">
               <h2 className="font-semibold text-lg mb-2">Beri Rating Website Ini:</h2>
               <div className="flex items-center mb-2">
@@ -163,7 +177,6 @@ export default function ContactPage() {
                 required
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
               <input
@@ -176,7 +189,6 @@ export default function ContactPage() {
                 required
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Pesan</label>
               <textarea
@@ -197,9 +209,8 @@ export default function ContactPage() {
               Kirim Pesan
             </button>
 
-            {success && (
-              <p className="text-green-600 text-sm mt-2">Pesan berhasil dikirim!</p>
-            )}
+            {success && <p className="text-green-600 text-sm mt-2">Pesan berhasil dikirim!</p>}
+            {error && <p className="text-red-600 text-sm mt-2">Gagal mengirim pesan. Coba lagi nanti.</p>}
           </form>
         </motion.div>
       </div>

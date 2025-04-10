@@ -1,6 +1,5 @@
-// app/lib/mongodb.js
-
-const { MongoClient } = require("mongodb");
+// lib/mongodb.js
+import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGODB_URI;
 const options = {};
@@ -9,19 +8,20 @@ let client;
 let clientPromise;
 
 if (!process.env.MONGODB_URI) {
-  throw new Error("❌ MONGODB_URI belum diset di .env.local");
+  throw new Error("Harap atur MONGODB_URI di .env.local");
 }
 
-// Cegah membuat banyak koneksi saat development
 if (process.env.NODE_ENV === "development") {
+  // Gunakan cache global di dev agar koneksi tidak dibuat ulang setiap kali reload
   if (!global._mongoClientPromise) {
     client = new MongoClient(uri, options);
     global._mongoClientPromise = client.connect();
   }
   clientPromise = global._mongoClientPromise;
 } else {
+  // Di production, tidak cache
   client = new MongoClient(uri, options);
   clientPromise = client.connect();
 }
 
-module.exports = clientPromise;
+export default clientPromise;
