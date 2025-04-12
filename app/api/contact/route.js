@@ -1,5 +1,19 @@
-// app/api/contact/route.js
-import clientPromise from "@/app/lib/mongodb";
+import { connectToDatabase } from "@/app/lib/mongodb";
+import mongoose from "mongoose";
+
+// Definisikan skema hanya sekali (hindari re-declare di dev)
+const ContactSchema = new mongoose.Schema({
+  nama: String,
+  email: String,
+  pesan: String,
+  waktu: {
+    type: Date,
+    default: Date.now,
+  },
+});
+
+// Gunakan model jika sudah ada, atau buat baru
+const Contact = mongoose.models.Contact || mongoose.model("Contact", ContactSchema);
 
 export async function POST(req) {
   try {
@@ -16,21 +30,15 @@ export async function POST(req) {
       });
     }
 
-    const client = await clientPromise;
-    const db = client.db("portfolio");
+    await connectToDatabase();
 
-    await db.collection("contacts").insertOne({
-      nama,
-      email,
-      pesan,
-      waktu: new Date(),
-    });
+    await Contact.create({ nama, email, pesan });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
     });
   } catch (error) {
-    console.error("Error saving contact:", error);
+    console.error("Error submitting contact form:", error);
     return new Response(JSON.stringify({
       success: false,
       message: "Terjadi kesalahan server",
