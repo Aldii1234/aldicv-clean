@@ -1,21 +1,24 @@
-import { NextResponse } from "next/server";
-import clientPromise from "../../../../lib/mongodb"; // <= RELATIF
-import { insertRating } from "../../../../models/Rating"; // <= RELATIF
+import { MongoClient } from "mongodb";
+
+const uri = process.env.MONGODB_URI;
+const client = new MongoClient(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  tls: true,
+});
 
 export async function POST(req) {
   try {
     const body = await req.json();
-    const { nama, komentar, rating } = body;
+    await client.connect();
+    const db = client.db("websiteku");
+    const collection = db.collection("ratings");
 
-    if (!nama || !komentar || !rating) {
-      return NextResponse.json({ message: "Data tidak lengkap!" }, { status: 400 });
-    }
+    await collection.insertOne(body);
 
-    await insertRating({ nama, komentar, rating });
-
-    return NextResponse.json({ message: "Rating berhasil dikirim" }, { status: 200 });
+    return Response.json({ success: true });
   } catch (error) {
     console.error("Gagal simpan rating:", error);
-    return NextResponse.json({ message: "Terjadi kesalahan server" }, { status: 500 });
+    return Response.json({ success: false, error: error.message });
   }
 }
