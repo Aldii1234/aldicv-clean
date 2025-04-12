@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { timelineData } from "@/app/data/timeline";
+import { timelineData } from "@/app/data/timeline"; // Import dari file terpisah
 
 export default function PortfolioPage() {
   return (
